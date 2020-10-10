@@ -187,8 +187,6 @@ ghci> :q
 
 -}
 
-import Data.List
-
 {- |
 =⚔️= Task 1
 
@@ -480,7 +478,7 @@ Implement a function that returns the last digit of a given number.
   whether it works for you!
 -}
 lastDigit :: Int -> Int
-lastDigit n = mod n 10
+lastDigit n = mod (abs n) 10
 
 
 {- |
@@ -547,7 +545,7 @@ mid :: Int -> Int -> Int -> Int
 mid x y z
     | x <= y && y <= z || z <= y && y <= x = y
     | y <= x && x <= z || z <= x && x <= y = x
-    | x <= z && z <= y || y <= z && z <= x = z
+    | otherwise = z
 
 {- |
 =⚔️= Task 8
@@ -563,7 +561,7 @@ False
 -}
 isVowel :: Char -> Bool
 isVowel c
-    | isInfixOf [c] "aeiouyAEIOUY" = True
+    | elem c "aeiouyAEIOUY" = True
     | otherwise = False
 
 
@@ -629,9 +627,9 @@ specifying complex expressions.
 -}
 sumLast2 :: Int -> Int
 sumLast2 n =
-    let last = mod n 10
-        before_last = div (mod n 100 - last) 10
-    in last + before_last
+    let last = mod (abs n) 10
+        beforeLast = div (mod (abs n) 100) 10
+    in last + beforeLast
 
 
 {- |
@@ -653,8 +651,8 @@ aren't ready for this boss yet!
 -}
 firstDigit :: Int -> Int
 firstDigit n =
-    if n > 9
-        then firstDigit (div n 10)
+    if abs n > 9
+        then firstDigit (div (abs n) 10)
         else n
 
 
