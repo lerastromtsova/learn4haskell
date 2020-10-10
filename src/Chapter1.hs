@@ -653,7 +653,7 @@ firstDigit :: Int -> Int
 firstDigit n =
     if abs n > 9
         then firstDigit (div (abs n) 10)
-        else n
+        else abs n
 
 
 {-
