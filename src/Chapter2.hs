@@ -504,8 +504,7 @@ True
 False
 -}
 isThird42 :: [Int] -> Bool
-isThird42 [ _ , _ , 42 ] = True -- can I make it better? this works for lists of length 3
-isThird42 [ _ , _ , 42, _ ] = True -- and this for lists of length > 3
+isThird42 ( _ : _ : 42 : _ ) = True
 isThird42 _ = False
 
 
@@ -855,7 +854,7 @@ list.
 -}
 rotate :: Int -> [Int] -> [Int]
 rotate x list
-    | x < 0  = []
+    | x < 0  || list == [] = []
     | mod x listLength == 0 = list -- in this case we don't need to make any changes
     | otherwise = take listLength (drop x (take (listLength * x + 1) (cycle list)))
     where
