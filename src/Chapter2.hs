@@ -877,32 +877,12 @@ and reverses it.
   cheating!
 -}
 
-{-
-I have this solution, but it's not optimal.
-I tried to implement another, but it doesn't seem to work (see commented code below)
--}
-rewind :: [a] -> [a]
-rewind [] = []
-rewind (x:xs) = rewind xs ++ [x]
-
-{-
-This function works fine for lists like [1..5]
-But it returns a reversed list of element indexes
-
 rewind :: [Int] -> [Int]
-rewind l = go (length l) l
+rewind l = go [] l
   where
-  go :: Int -> [Int] -> [Int]
-  go i l
-      | i >= 1 = i : go (i-1) (drop (i-1) l)
-      | otherwise = l
-
-I can't get how to create a list of elements themselves. I tried this code
-`i >= 1 = l!!i : go (i-1) (drop (i-1) l)`
-instead of
-`i >= 1 = i : go (i-1) (drop (i-1) l)`
-But I keep getting an error about the index being too large :(
--}
+      go :: [Int] -> [Int] -> [Int]
+      go acc [] = acc
+      go acc (x:xs) = go (x:acc) xs
 
 {-
 You did it! Now it is time to open pull request with your changes
