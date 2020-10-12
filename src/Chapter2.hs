@@ -854,11 +854,13 @@ list.
 rotate :: Int -> [Int] -> [Int]
 rotate x list
     | x < 0  || list == [] = []
-    | mod x listLength == 0 = list -- in this case we don't need to make any changes
-    | otherwise = take listLength (drop x (take (listLength * x + 1) (cycle list)))
+    | numOfRotations == 0 = list -- in this case we don't need to make any changes
+    | otherwise = take listLength (drop numOfRotations (take (listLength * 2) (cycle list)))
     where
         listLength :: Int
+        numOfRotations :: Int
         listLength = length list
+        numOfRotations = mod x listLength
 
 {- |
 =💣= Task 12*
