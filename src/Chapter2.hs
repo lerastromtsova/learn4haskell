@@ -736,8 +736,7 @@ value of the element itself
 🕯 HINT: Use combination of 'map' and 'replicate'
 -}
 smartReplicate :: [Int] -> [Int]
-smartReplicate [] = []
-smartReplicate (x:xs) = (replicate x x) ++ smartReplicate xs -- I didn't find a way to use `map` here 🤔
+smartReplicate l = concatMap (\x -> replicate x x) l
 
 {- |
 =⚔️= Task 9
