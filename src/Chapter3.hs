@@ -613,18 +613,13 @@ buildHouse city numPersons = case new_house of
     where
         new_house = makeHouse numPersons
 
----- Do not know exactly how to check that a city has a castle
---buildWalls :: City -> City
---buildWalls city
---    | population >= 10
-----      I tried this approach, but didn't make it work out
-----      && (typeOf city == CityWithCastleWallChurch
-----      ||  typeOf city == CityWithCastleWallLibrary )
---      = city { walls=(Wall:walls city) }
---    | otherwise = error "Not enough population :("
---    where
---        population :: Int
---        population = sum (map countPeople (houses city))
+buildWalls :: City -> City
+buildWalls city
+    | population >= 10 = city { cityCastle = WallCastle "New castle"}
+    | otherwise = error "Not enough population :("
+    where
+        population :: Int
+        population = sum (map countPeople (cityHouses city))
 
 {-
 =🛡= Newtypes
