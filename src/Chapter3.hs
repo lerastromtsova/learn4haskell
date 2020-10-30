@@ -344,18 +344,24 @@ Define the Book product data type. You can take inspiration from our description
 of a book, but you are not limited only by the book properties we described.
 Create your own book type of your dreams!
 -}
-data Date = Date
-    { day   :: Int  -- is there a way to restrict acceptable values?
-    , month :: Int
-    , year  :: Int
-    }
+data Date = Date Int Int Int deriving(Show)
+
+monthDuration = [31,28,31,30,31,30,31,31,30,31,30,31]
+-- let's suppose February is always 28 days long for the sake of simplicity :)
+
+mkDate :: Int -> Int -> Int -> Maybe Date
+mkDate day month year
+    | (year < 0) || (year > 2020) = Nothing
+    | (month < 1) || (month > 12)  = Nothing
+    | (day < 1) || (day > monthDuration!!(month-1)) = Nothing
+    | otherwise = Just (Date day month year)
 
 data Author = Author
     { firstName  :: String
     , lastName   :: String
-    , middleName :: String -- is there a way to make this optional?
+    , middleName :: Maybe String
     , birthDate  :: Date
-    , deathDate  :: Date -- this should be optional as well
+    , deathDate  :: Maybe Date
     }
 
 data Genre = Genre
@@ -413,20 +419,17 @@ data Fighter = Fighter
 {- Returns the updated knight, monster and fight result (-1 knight lost, 1 knight won, 0 draw) -}
 fight :: (Fighter, Fighter)-> (Fighter, Fighter, Int)
 fight (knight, monster)
-    | health knight  == 0 && health monster > 0 = (knight, monster, -1)
-    | health monster == 0 && health knight  > 0 = (knight { gold = gold knight + gold monster }, monster, 1)
+    | health knight  <= 0 && health monster > 0 = (knight, monster, -1)
+    | health monster <= 0 && health knight  > 0 = (knight { gold = gold knight + gold monster }, monster, 1)
     | health monster == 0 && health knight == 0 = (knight, monster, 0)
-    | otherwise = fight (nextRound (knight, monster))
+    | otherwise = fight (updatedKnight, updatedMonster)
     where
-        nextRound :: (Fighter, Fighter) -> (Fighter, Fighter)
-        nextRound (knight, monster) = (updatedKnight, updatedMonster)
-            where
-                updatedMonster :: Fighter
-                updatedKnight  :: Fighter
-                updatedMonster = monster { health = health monster - attack knight }
-                updatedKnight = if health monster > 0
-                                then knight { health = (health knight - attack monster) }
-                                else knight
+        updatedMonster :: Fighter
+        updatedKnight  :: Fighter
+        updatedMonster = monster { health = health monster - attack knight }
+        updatedKnight = if health monster > 0
+                        then knight { health = (health knight - attack monster) }
+                        else knight
 
 {- |
 =🛡= Sum types
@@ -514,23 +517,28 @@ Create a simple enumeration for the meal types (e.g. breakfast). The one who
 comes up with the most number of names wins the challenge. Use your creativity!
 -}
 
+data FrenchBreakfast = FrenchBreakfast
+    { croissant :: Int
+    , jam       :: Int
+    , butter    :: Int
+    }
+
+data EnglishBreakfast = EnglishBreakfast
+     { tea       :: Int
+     , milk      :: Int
+     , friedEggs :: Int
+     , toasts    :: Int
+     }
+
+data RussianBreakfast = RussianBreakfast
+    { caviar    :: Int
+    , pancakes  :: Int
+    }
+
 data Breakfast
-    = FrenchBreakfast
-        { croissant :: Int
-        , jam       :: Int
-        , butter    :: Int
-        }
-    | EnglishBreakfast
-        { tea       :: Int
-        , milk      :: Int
-        , friedEggs :: Int
-        , toasts    :: Int
-        }
-    | RussianBreakfast
-        { caviar    :: Int
-        , pancakes  :: Int
-        }
-    deriving (Show)
+    = French FrenchBreakfast
+    | English EnglishBreakfast
+    | Russian RussianBreakfast
 
 {- |
 =⚔️= Task 4
@@ -552,13 +560,17 @@ After defining the city, implement the following functions:
    and at least 10 living __people__ inside in all houses of the city totally.
 -}
 
-data Castle = Castle
-    { name :: String
-    } deriving (Show)
+data Castle
+    = Castle String
+    | WallCastle String
+    | None
+    deriving (Show)
 
-data Wall = Wall deriving (Show)
-data Church = Church deriving (Show)
-data Library = Library deriving (Show)
+data ChurchOrLibrary
+    = Church
+    | Library
+    deriving (Show)
+
 data People
     = OnePerson
     | TwoPersons
@@ -570,31 +582,14 @@ data House = House
     { people :: People
     } deriving (Show)
 
-data City
-    = CityWithCastleWallChurch
-        { castle  :: Castle
-        , walls    :: [Wall]
-        , church  :: Church
-        , houses  :: [House]
-        }
-    | CityWithCastleWallLibrary
-        { castle  :: Castle
-        , wall    :: [Wall]
-        , library :: Library
-        , houses  :: [House]
-        }
-    | CityWithChurch
-        { church  :: Church
-        , houses  :: [House]
-        }
-    | CityWithLibrary
-        { library :: Library
-        , houses  :: [House]
-        }
-    deriving (Show)
+data City = City
+    { cityCastle :: Castle
+    , cityChurchOrLibrary :: ChurchOrLibrary
+    , cityHouses :: [House]
+    } deriving (Show)
 
 buildCastle :: City -> String -> City
-buildCastle city castleName = city { castle = Castle castleName}
+buildCastle city castleName = city { cityCastle = Castle castleName}
 
 countPeople :: House -> Int
 countPeople house = case people house of
@@ -603,28 +598,33 @@ countPeople house = case people house of
     ThreePersons -> 3
     FourPersons -> 4
 
-buildHouse  :: City -> Int -> City
-buildHouse city numPersons = city { houses = (new_house:houses city)}
-    where
-        new_house
-            | numPersons == 1 = House OnePerson
-            | numPersons == 2 = House TwoPersons
-            | numPersons == 3 = House ThreePersons
-            | numPersons == 4 = House FourPersons
-            | otherwise = error "Invalid number of persons"
+makeHouse :: Int -> Maybe House
+makeHouse numPersons = case numPersons of
+    1 -> Just (House OnePerson)
+    2 -> Just (House TwoPersons)
+    3 -> Just (House ThreePersons)
+    4 -> Just (House FourPersons)
+    _ -> Nothing
 
--- Do not know exactly how to check that a city has a castle
-buildWalls :: City -> City
-buildWalls city
-    | population >= 10
---      I tried this approach, but didn't make it work out
---      && (typeOf city == CityWithCastleWallChurch
---      ||  typeOf city == CityWithCastleWallLibrary )
-      = city { walls=(Wall:walls city) }
-    | otherwise = error "Not enough population :("
+buildHouse  :: City -> Int -> City
+buildHouse city numPersons = case new_house of
+    Just house -> city { cityHouses = (house:cityHouses city)}
+    Nothing -> city
     where
-        population :: Int
-        population = sum (map countPeople (houses city))
+        new_house = makeHouse numPersons
+
+---- Do not know exactly how to check that a city has a castle
+--buildWalls :: City -> City
+--buildWalls city
+--    | population >= 10
+----      I tried this approach, but didn't make it work out
+----      && (typeOf city == CityWithCastleWallChurch
+----      ||  typeOf city == CityWithCastleWallLibrary )
+--      = city { walls=(Wall:walls city) }
+--    | otherwise = error "Not enough population :("
+--    where
+--        population :: Int
+--        population = sum (map countPeople (houses city))
 
 {-
 =🛡= Newtypes
@@ -1075,18 +1075,20 @@ class Append a where
 
 instance Append [a] where
     append :: [a] -> [a] -> [a]
-    append x y = x ++ y
+    append = (++)
 
 newtype Gold = Gold Int
 
 instance Append Gold where
     append :: Gold -> Gold -> Gold
-    append (Gold x) (Gold y) = Gold (x+y)
+    append (Gold x) (Gold y) = Gold (x + y)
 
--- didn't quite understand what is required in this task :/
---instance Append (Maybe a) where
---    append :: (Maybe a) -> (Maybe a) -> (Maybe a)
---    append (Just x) (Just y) = Just (append x y)
+instance Append (Maybe a) where
+    append :: (Maybe a) -> (Maybe a) -> (Maybe a)
+    append (Just x) (Just y) = append (Just x) (Just y)
+    append (Nothing) (Just y) = Just y
+    append (Just x) (Nothing) = Just x
+    append (Nothing) (Nothing) = Nothing
 
 {-
 =🛡= Standard Typeclasses and Deriving
@@ -1166,7 +1168,7 @@ isWeekend x = case x of
 
 nextDay :: DayOfWeek -> DayOfWeek
 nextDay x = case x of
-    Sunday -> Monday
+    maxBound -> minBound
     _ -> succ x
 
 daysToParty :: DayOfWeek -> Int
