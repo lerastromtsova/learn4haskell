@@ -615,8 +615,11 @@ buildHouse city numPersons = case new_house of
 
 buildWalls :: City -> City
 buildWalls city
-    | population >= 10 = city { cityCastle = WallCastle "New castle"}
-    | otherwise = error "Not enough population :("
+    | population >= 10
+    = case cityCastle city of
+    Castle castle -> city { cityCastle = WallCastle castle}
+    _ -> city
+    | otherwise = city
     where
         population :: Int
         population = sum (map countPeople (cityHouses city))
@@ -1162,9 +1165,9 @@ isWeekend x = case x of
     _ -> False
 
 nextDay :: DayOfWeek -> DayOfWeek
-nextDay x = case x of
-    maxBound -> minBound
-    _ -> succ x
+nextDay x
+    | x == maxBound = minBound
+    | otherwise = succ x
 
 daysToParty :: DayOfWeek -> Int
 daysToParty x = case x of
