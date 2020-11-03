@@ -1084,9 +1084,8 @@ instance Append Gold where
 instance Append (Maybe a) where
     append :: (Maybe a) -> (Maybe a) -> (Maybe a)
     append (Just x) (Just y) = append (Just x) (Just y)
-    append (Nothing) (Just y) = Just y
-    append (Just x) (Nothing) = Just x
-    append (Nothing) (Nothing) = Nothing
+    append Nothing y = y
+    append x Nothing = x
 
 {-
 =🛡= Standard Typeclasses and Deriving
